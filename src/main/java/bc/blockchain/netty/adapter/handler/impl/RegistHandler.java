@@ -19,6 +19,7 @@ public class RegistHandler extends AbstractHandler {
 			return;
 		}
 		System.out.print("注册客户端");
+		
 		response.setCode("200");
 	}
 

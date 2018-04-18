@@ -62,9 +62,8 @@ public class SimpleServerCallBack implements CallBack {
 	}
 
 	@Override
-	public void setCommand(Request command) {
+	public void setRequest(Request command) {
 		this.request=command;
-		
 	}
 
 }

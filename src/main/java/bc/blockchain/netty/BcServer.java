@@ -14,6 +14,9 @@ import io.netty.handler.timeout.IdleStateHandler;
 
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import bc.blockchain.callback.CallBack;
 import bc.blockchain.client.BlockChainContext;
 import bc.blockchain.netty.adapter.NettyClientAdapter;
@@ -23,7 +26,7 @@ import bc.blockchain.peer.Peer;
 
 public class BcServer {
 
-
+	private Logger logger=LoggerFactory.getLogger(getClass());
 	private BlockChainContext blockChainContext;
 	
 	private NettyClientAdapter nettyServerAdapter;
@@ -75,7 +78,7 @@ public class BcServer {
 		});
 
 		ChannelFuture f = b.bind(ip, port).sync();
-		System.out.println("netty server start success...");
+		logger.info("监听的服务器接口："+ip+" port:"+port +"finished.");
 
 	}
 

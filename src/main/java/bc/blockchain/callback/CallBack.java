@@ -5,6 +5,6 @@ import bc.blockchain.peer.Peer;
 
 public interface CallBack {
 	public void execute();
-	public void setCommand(Request command);
+	public void setRequest(Request command);
 	
 }

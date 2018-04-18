@@ -1,5 +1,7 @@
 package bc.blockchain.client;
 
+import io.netty.channel.Channel;
+
 import java.util.Hashtable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -34,11 +36,13 @@ public class BlockChainContext {
 			
 		}
 	}
-	public void start(Peer peer) {
+	public void start(Peer peerA,Peer peerB) {
+		logger.info("peerA:"+peerA.toString());
+		logger.info("peerB:"+peerB.toString());
 		startScheduleCheckLivePeer();
-		
+		connA2B(peerB);
 		if(server==null){
-			initServer(peer);
+			initServer(peerA);
 		}
 		
 		try {
@@ -47,7 +51,7 @@ public class BlockChainContext {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		connB2A(peerA);
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
 
 			@Override
@@ -62,6 +66,26 @@ public class BlockChainContext {
 		logger.info("启动完成");
 	}
 
+	private void connB2A(Peer peerA) {
+		Request request=new Request(RequestType.HI);
+		client=new Client(new ClientCallBack(this,request),peerA);
+		try {
+			client.execute(request);
+		} catch (InterruptedException e) {
+			logger.error("B------------>A-----erro");
+			logger.error(e.getMessage());
+		}
+	}
+	private void connA2B(Peer peerB) {
+		Request request=new Request(RequestType.HI);
+		client=new Client(new ClientCallBack(this,request),peerB);
+		try {
+			client.execute(request);
+		} catch (InterruptedException e) {
+			logger.error("A------------>B-----erro 异常正常");
+			logger.error(e.getMessage());
+		}
+	}
 	//启动定时器监测客户端是否存货。通知客户端是否在线。
 	private void startScheduleCheckLivePeer() {
 		scheduledThreadPool.scheduleAtFixedRate(new Runnable() {
@@ -106,10 +130,15 @@ public class BlockChainContext {
 	public void setLocalRemotePeer(Peer localRemotePeer) {
 		this.localRemotePeer = localRemotePeer;
 	}
-	public Peer collectPeerInfo() throws InterruptedException{
+	public Peer regPeerAInfo() throws InterruptedException{
 		Request request=new Request(RequestType.REG);
 		client=new Client(new ClientCallBack(this,request),remotePeer);
-		return client.execute(request);
+		return client.getInternetPeer(request);
+	}
+	public Peer regPeerBInfo() throws InterruptedException{
+		Request request=new Request(RequestType.REG);
+		client=new Client(new ClientCallBack(this,request),remotePeer);
+		return client.getInternetPeer(request);
 	}
 	
 	public boolean heartBeat(){
@@ -122,4 +151,5 @@ public class BlockChainContext {
 		}
 		return true;
 	}
+	
 }

@@ -3,6 +3,9 @@ package bc.blockchain.client.handler;
 import java.net.InetSocketAddress;
 import java.util.Date;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.alibaba.fastjson.JSONObject;
 
 import bc.blockchain.callback.client.impl.ClientCallBack;
@@ -13,6 +16,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
 
 public class ClientAdapter extends io.netty.channel.ChannelInboundHandlerAdapter{
+	private Logger logger=LoggerFactory.getLogger(getClass());
 	private ClientCallBack simpleCallBack;
 	private Request request;
 	public ClientAdapter(ClientCallBack simpleCallBack, Request request) {
@@ -27,10 +31,9 @@ public class ClientAdapter extends io.netty.channel.ChannelInboundHandlerAdapter
 	  
 	    @Override  
 	    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {  
-	    	System.out.println("获得返回值："+msg);
+	    	logger.info("获得返回值："+msg);
 	    	Request req = RequestUtil.create(msg.toString());
-	    	simpleCallBack.setCommand(req);
-	    	simpleCallBack.setData(msg.toString());
+	    	simpleCallBack.setRequest(req);
 	    	simpleCallBack.execute();
 	        ctx.close();  
 	    }  
@@ -40,12 +43,5 @@ public class ClientAdapter extends io.netty.channel.ChannelInboundHandlerAdapter
 	        cause.printStackTrace();  
 	        ctx.close();  
 	    }  
-	    private Peer createPeer(String addr, Integer port) {
-			Peer peer = new Peer(addr, port, new Date());
-			peer.setAddress(addr);
-			peer.setPort(port);
-			peer.setLiveTime(new Date());
-			return peer;
-
-		}
+	    
 }

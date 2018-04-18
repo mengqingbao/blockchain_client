@@ -51,15 +51,16 @@ public class Bootstrap extends BlockChainContext{
             hf.printHelp("testApp", options, true);
         }
         
-		Peer peer=null;
+		Peer peerA = null,peerB=null;
         Bootstrap bs=new Bootstrap();
         bs.setSysEvn();
         try {
-			peer=bs.collectPeerInfo();
+			peerA=bs.regPeerAInfo();
+			peerB=bs.regPeerBInfo();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-       bs.start(peer);
+       bs.start(peerA,peerB);
         
         
 //		Bootstrap bs=new Bootstrap();

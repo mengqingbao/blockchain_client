@@ -39,7 +39,7 @@ public class ClientCallBack implements CallBack {
 	    	Peer lrp=new Peer(peerObj.getString("ip"),peerObj.getInteger("port"),null);
 			context.setLocalRemotePeer(lrp);
 			break;
-		case CHECK:
+		case HI:
 
 			break;
 
@@ -68,7 +68,7 @@ public class ClientCallBack implements CallBack {
 	}
 
 	@Override
-	public void setCommand(Request command) {
+	public void setRequest(Request command) {
 		this.request=command;
 		
 	}
