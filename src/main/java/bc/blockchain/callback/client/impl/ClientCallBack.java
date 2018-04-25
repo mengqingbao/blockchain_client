@@ -25,6 +25,10 @@ public class ClientCallBack implements CallBack {
 	public ClientCallBack(BlockChainContext context, Request request) {
 		this.context = context;
 		this.request = request;
+		if(request==null){
+			request=new Request();
+			request.setrequestType(RequestType.HI);
+		}
 	}
 
 	@Override
@@ -33,11 +37,9 @@ public class ClientCallBack implements CallBack {
 		switch (request.getrequestType()) {
 		case REG:  //设置localRemotePeer信息 获得本地监听的地址相同。
 			
-			JSONObject obj= JSONObject.parseObject(data);
-	    	String peerStr=obj.getString("content");
-	    	JSONObject peerObj=JSONObject.parseObject(peerStr);
-	    	Peer lrp=new Peer(peerObj.getString("ip"),peerObj.getInteger("port"),null);
-			context.setLocalRemotePeer(lrp);
+			
+			System.out.println(request.toString());
+	    	//context.setLocalRemotePeer(lrp);
 			break;
 		case HI:
 

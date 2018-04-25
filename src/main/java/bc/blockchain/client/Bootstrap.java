@@ -1,5 +1,7 @@
 package bc.blockchain.client;
 
+import io.netty.channel.Channel;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -7,11 +9,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-
-import bc.blockchain.callback.client.impl.ClientCallBack;
-import bc.blockchain.client.handler.Client;
-import bc.blockchain.common.request.RequestType;
-import bc.blockchain.peer.Peer;
 
 public class Bootstrap extends BlockChainContext{
 	
@@ -34,10 +31,9 @@ public class Bootstrap extends BlockChainContext{
             commandLine = parser.parse(options, args);
             if (commandLine.hasOption('h')) {
                 // 打印使用帮助
-                hf.printHelp("testApp", options, true);
+                hf.printHelp("DYMLINK", options, true);
             }
             // 打印opts的名称和值
-            System.out.println("--------------------------------------");
             Option[] opts = commandLine.getOptions();
             if (opts != null) {
                 for (Option opt1 : opts) {
@@ -51,17 +47,10 @@ public class Bootstrap extends BlockChainContext{
             hf.printHelp("testApp", options, true);
         }
         
-		Peer peerA = null,peerB=null;
         Bootstrap bs=new Bootstrap();
         bs.setSysEvn();
-        try {
-			peerA=bs.regPeerAInfo();
-			peerB=bs.regPeerBInfo();
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-       bs.start(peerA,peerB);
-        
+        Channel channel = bs.start();
+        bs.regClient(channel);
         
 //		Bootstrap bs=new Bootstrap();
 //		bs.start();

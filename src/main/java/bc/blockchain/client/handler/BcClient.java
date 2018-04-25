@@ -1,4 +1,5 @@
 /**
+
  * Project Name:baomq
  * File Name:Client.java
  * Package Name:cn.bofowo.cn.test
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
@@ -45,17 +47,18 @@ import bc.blockchain.util.RequestUtil;
  * @since    JDK 1.7
  * @see 	 
  */
-public class Client {
+public class BcClient {
 	private Logger logger=LoggerFactory.getLogger(getClass());
 	private ClientCallBack simpleCallBack;
 	private Peer peer;
 	public Peer localNetPeer=null;
-	public Client(ClientCallBack simpleCallBack,Peer peer) {
+	public BcClient(ClientCallBack simpleCallBack,Peer peer) {
 		this.simpleCallBack=simpleCallBack;
 		this.peer=peer;
 	}
 
-	public Peer execute(Request request) throws InterruptedException {  
+
+	public Channel comet() throws InterruptedException {  
 		Peer localNetPeer=null;
 		
         EventLoopGroup workerGroup = new NioEventLoopGroup(); 
@@ -72,22 +75,15 @@ public class Client {
                               pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));  
                               pipeline.addLast("decoder", new NettyDecoder());  
                               pipeline.addLast("encoder", new NettyEncoder());  
-                              pipeline.addLast(new ClientAdapter(simpleCallBack,request));    
+                              pipeline.addLast(new ClientAdapter(simpleCallBack,null));    
                         }  
                     });  
             ChannelFuture f = b.connect(peer.getIp(), peer.getPort()).sync();
              
-            SocketChannel clientChannel = (SocketChannel) f.channel();
-            InetSocketAddress isa=clientChannel.localAddress();
-            localNetPeer=new Peer(isa.getHostString(),isa.getPort(),null);
-            logger.info("提交数据"+request.toString());
-            f.channel().write(request.toString());
-            f.channel().closeFuture().sync(); 
+           return f.channel() ;
         } finally {  
-            workerGroup.shutdownGracefully();  
+            
         }
-        logger.info(peer.toString());
-		return localNetPeer;  
 	}
 	
 	public Peer getInternetPeer(Request request) throws InterruptedException {  

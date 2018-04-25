@@ -59,7 +59,7 @@ public class NettyClientAdapter extends ChannelInboundHandlerAdapter {
 
 			if (event.state().equals(IdleState.READER_IDLE)) {
 				// 未进行读操作
-				//System.out.println("READER_IDLE");
+				System.out.println("clientREADER_IDLE");
 				// 超时关闭channel
 				// ctx.close();
 
@@ -67,7 +67,7 @@ public class NettyClientAdapter extends ChannelInboundHandlerAdapter {
 
 			} else if (event.state().equals(IdleState.ALL_IDLE)) {
 				// 发送心跳消息
-				//System.out.println("系统通信状态"+event.state());
+				System.out.println("client系统通信状态"+event.state());
 
 			}
 

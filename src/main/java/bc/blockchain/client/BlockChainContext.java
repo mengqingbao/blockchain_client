@@ -11,12 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import bc.blockchain.callback.client.impl.ClientCallBack;
-import bc.blockchain.client.handler.Client;
+import bc.blockchain.client.handler.BcClient;
 import bc.blockchain.common.request.Request;
 import bc.blockchain.common.request.RequestType;
 import bc.blockchain.constant.BcConstant;
-import bc.blockchain.netty.BcServer;
-import bc.blockchain.peer.LocalRemotePeer;
 import bc.blockchain.peer.Peer;
 import bc.blockchain.util.PropertiesUtil;
 
@@ -24,34 +22,24 @@ public class BlockChainContext {
 
 	private Logger logger=LoggerFactory.getLogger(getClass());
 	private final static Hashtable<String, Peer> peerTable = new Hashtable<String, Peer>();
-	private ScheduledExecutorService scheduledThreadPool = Executors
+	private final static Hashtable<String, Peer> dnsTable = new Hashtable<String, Peer>();
+	private ScheduledExecutorService scheduledPeerDiscoveryPool = Executors
 			.newScheduledThreadPool(1);
-	private BcServer server;
-	private Client client;
+	private ScheduledExecutorService scheduledDnsDiscoveryPool = Executors
+			.newScheduledThreadPool(1);
+	private BcClient client;
 	private Peer remotePeer;
 	private Peer localRemotePeer=null;
-	public void initServer(Peer peer){
-		if(server==null){
-			server=new BcServer(peer);
-			
-		}
-	}
-	public void start(Peer peerA,Peer peerB) {
-		logger.info("peerA:"+peerA.toString());
-		logger.info("peerB:"+peerB.toString());
-		startScheduleCheckLivePeer();
-		connA2B(peerB);
-		if(server==null){
-			initServer(peerA);
-		}
+	public void initServer(){
 		
-		try {
-			server.run();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		connB2A(peerA);
+		choosePeer();
+	}
+	private void choosePeer() {
+		// TODO Auto-generated method stub
+		
+	}
+	public Channel start() {
+		Channel channel=comet(remotePeer);
 		Runtime.getRuntime().addShutdownHook(new Thread(new Runnable(){
 
 			@Override
@@ -64,36 +52,28 @@ public class BlockChainContext {
 		}));
 		
 		logger.info("启动完成");
+		return channel;
 	}
 
-	private void connB2A(Peer peerA) {
-		Request request=new Request(RequestType.HI);
-		client=new Client(new ClientCallBack(this,request),peerA);
+	private Channel comet(Peer peer){
+		BcClient client=new BcClient(new ClientCallBack(this, null),remotePeer);
+		Channel channel=null;
 		try {
-			client.execute(request);
-		} catch (InterruptedException e) {
-			logger.error("B------------>A-----erro");
+			channel=client.comet();
+		} catch (Exception e) {
 			logger.error(e.getMessage());
 		}
+		startScheduleCheckLivePeer(channel);
+		return channel;
 	}
-	private void connA2B(Peer peerB) {
-		Request request=new Request(RequestType.HI);
-		client=new Client(new ClientCallBack(this,request),peerB);
-		try {
-			client.execute(request);
-		} catch (InterruptedException e) {
-			logger.error("A------------>B-----erro 异常正常");
-			logger.error(e.getMessage());
-		}
-	}
-	//启动定时器监测客户端是否存货。通知客户端是否在线。
-	private void startScheduleCheckLivePeer() {
-		scheduledThreadPool.scheduleAtFixedRate(new Runnable() {
+
+	//启动定时器监测客户端是否存活。通知客户端是否在线。
+	private void startScheduleCheckLivePeer(Channel channel) {
+		scheduledDnsDiscoveryPool.scheduleAtFixedRate(new Runnable() {
 			public void run() {
 				//进行自检确认是否在线
 				logger.debug("p2p客户端在线自检");
-				freshClient();
-				heartBeat();
+				freshClient(channel);
 			}
 		}, 3, 15, TimeUnit.SECONDS);
 		
@@ -101,7 +81,7 @@ public class BlockChainContext {
 
 	//关闭服务端
 	public void shutdown(){
-		scheduledThreadPool.shutdown();
+		scheduledDnsDiscoveryPool.shutdown();
 	}
 	
 	//设置环境变量
@@ -112,44 +92,22 @@ public class BlockChainContext {
 		remotePeer=new Peer(ip,port,null);
 	}
 	
-	public void regClient(Peer peer){
-		peerTable.put(peer.genId(), peer);
+	public void regClient(Channel channel){
+		Request request = new Request();
+		request.putHeader(RequestType.REG);
+		channel.write(request.toString());
+		channel.flush();
 	}
 	
-	public void freshClient(){ //向服务器刷新本地状态
-		Request request=new Request(RequestType.REFRESHCLIENT);
-		request.setContent(localRemotePeer.toString());
-		client=new Client(new ClientCallBack(this,request),remotePeer);
-		try {
-			client.execute(request);
-		} catch (InterruptedException e) {
-			logger.info(e.getMessage());
-		}
+	public void freshClient(Channel channel){ //向服务器刷新本地状态
+		Request request = new Request();
+		request.putHeader(RequestType.REFRESHCLIENT);
+		channel.write(request.toString());
+		channel.flush();
 		
 	}
 	public void setLocalRemotePeer(Peer localRemotePeer) {
 		this.localRemotePeer = localRemotePeer;
-	}
-	public Peer regPeerAInfo() throws InterruptedException{
-		Request request=new Request(RequestType.REG);
-		client=new Client(new ClientCallBack(this,request),remotePeer);
-		return client.getInternetPeer(request);
-	}
-	public Peer regPeerBInfo() throws InterruptedException{
-		Request request=new Request(RequestType.REG);
-		client=new Client(new ClientCallBack(this,request),remotePeer);
-		return client.getInternetPeer(request);
-	}
-	
-	public boolean heartBeat(){
-		Request request=new Request(RequestType.HEARTBEAT);
-		client=new Client(new ClientCallBack(this,request),localRemotePeer);
-		try {
-			client.execute(request);
-		} catch (InterruptedException e) {
-			return false;
-		}
-		return true;
 	}
 	
 }

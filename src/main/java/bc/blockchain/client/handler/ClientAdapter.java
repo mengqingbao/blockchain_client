@@ -10,6 +10,7 @@ import com.alibaba.fastjson.JSONObject;
 
 import bc.blockchain.callback.client.impl.ClientCallBack;
 import bc.blockchain.common.request.Request;
+import bc.blockchain.common.request.RequestType;
 import bc.blockchain.peer.Peer;
 import bc.blockchain.util.RequestUtil;
 import io.netty.channel.ChannelHandlerContext;
@@ -21,12 +22,16 @@ public class ClientAdapter extends io.netty.channel.ChannelInboundHandlerAdapter
 	private Request request;
 	public ClientAdapter(ClientCallBack simpleCallBack, Request request) {
 		this.simpleCallBack=simpleCallBack;
-		this.request=request;
+		if(request!=null){
+			this.request=request;
+		}else{
+			request=new Request();
+			request.putHeader(RequestType.HI);
+		}
 	}
 	@Override  
 	    public void channelActive(ChannelHandlerContext ctx) throws Exception {  
-	        ctx.write(request.toString());  
-	        ctx.flush();  
+	        //super.channelActive(ctx);
 	    }  
 	  
 	    @Override  
@@ -35,7 +40,7 @@ public class ClientAdapter extends io.netty.channel.ChannelInboundHandlerAdapter
 	    	Request req = RequestUtil.create(msg.toString());
 	    	simpleCallBack.setRequest(req);
 	    	simpleCallBack.execute();
-	        ctx.close();  
+	       // super.channelRead(ctx, msg);  
 	    }  
 	  
 	    @Override  
