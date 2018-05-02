@@ -1,25 +1,26 @@
 package bc.blockchain.callback.client.impl;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import io.netty.handler.codec.json.JsonObjectDecoder;
-
-import com.alibaba.fastjson.JSONObject;
 
 import bc.blockchain.callback.CallBack;
 import bc.blockchain.client.BlockChainContext;
 import bc.blockchain.common.request.Request;
 import bc.blockchain.common.request.RequestType;
-import bc.blockchain.peer.LocalRemotePeer;
+import bc.blockchain.common.response.Response;
 import bc.blockchain.peer.Peer;
+import bc.blockchain.util.BeanJsonUtil;
 
 public class ClientCallBack implements CallBack {
 	private Logger logger=LoggerFactory.getLogger(getClass());
 	private BlockChainContext context;
 	private Request request;
+	private Response response;
 	private Peer peer;
 	private String data;
+	private List<String> peers;
 
 
 	public ClientCallBack(BlockChainContext context, Request request) {
@@ -32,7 +33,7 @@ public class ClientCallBack implements CallBack {
 	}
 
 	@Override
-	public void execute() {
+	public Response execute() {
 		
 		switch (request.getrequestType()) {
 		case REG:  //设置localRemotePeer信息 获得本地监听的地址相同。
@@ -49,7 +50,9 @@ public class ClientCallBack implements CallBack {
 
 			break;
 		case REFRESHCLIENT:
-			logger.info("刷新服务器在线状态。"+data);
+			
+			//context.refreshPeerTable(peers);
+			logger.info("获取在线客户端"+peers);
 			break;
 		case HEARTBEAT:
 			logger.info("自检心跳返回内容。"+data);
@@ -61,6 +64,8 @@ public class ClientCallBack implements CallBack {
 		default:
 			break;
 		}
+		
+		return response;
 	}
 
 
@@ -73,6 +78,14 @@ public class ClientCallBack implements CallBack {
 	public void setRequest(Request command) {
 		this.request=command;
 		
+	}
+
+	public void setResponse(Response response) {
+		this.response = response;
+	}
+
+	public void setPeers(List<String> peers) {
+		this.peers = peers;
 	}
 
 }

@@ -75,7 +75,7 @@ public class BcClient {
                               pipeline.addLast("frameEncoder", new LengthFieldPrepender(4));  
                               pipeline.addLast("decoder", new NettyDecoder());  
                               pipeline.addLast("encoder", new NettyEncoder());  
-                              pipeline.addLast(new ClientAdapter(simpleCallBack,null));    
+                              pipeline.addLast(new ClientAdapter(simpleCallBack));    
                         }  
                     });  
             ChannelFuture f = b.connect(peer.getIp(), peer.getPort()).sync();

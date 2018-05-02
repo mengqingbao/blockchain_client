@@ -2,7 +2,11 @@ package bc.blockchain.client;
 
 import io.netty.channel.Channel;
 
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,7 +25,7 @@ import bc.blockchain.util.PropertiesUtil;
 public class BlockChainContext {
 
 	private Logger logger=LoggerFactory.getLogger(getClass());
-	private final static Hashtable<String, Peer> peerTable = new Hashtable<String, Peer>();
+	private final static Hashtable<String, Date> peerTable = new Hashtable<String, Date>();
 	private final static Hashtable<String, Peer> dnsTable = new Hashtable<String, Peer>();
 	private ScheduledExecutorService scheduledPeerDiscoveryPool = Executors
 			.newScheduledThreadPool(1);
@@ -104,8 +108,14 @@ public class BlockChainContext {
 		request.putHeader(RequestType.REFRESHCLIENT);
 		channel.write(request.toString());
 		channel.flush();
-		
 	}
+	
+	public void refreshPeerTable(List<String> peers){
+		for(String id:peers){
+			peerTable.put(id,new Date());
+		}
+	}
+	
 	public void setLocalRemotePeer(Peer localRemotePeer) {
 		this.localRemotePeer = localRemotePeer;
 	}

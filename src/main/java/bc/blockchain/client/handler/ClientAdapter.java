@@ -9,9 +9,13 @@ import org.slf4j.LoggerFactory;
 import com.alibaba.fastjson.JSONObject;
 
 import bc.blockchain.callback.client.impl.ClientCallBack;
+import bc.blockchain.callback.server.impl.SimpleServerCallBack;
+import bc.blockchain.client.BlockChainContext;
 import bc.blockchain.common.request.Request;
 import bc.blockchain.common.request.RequestType;
+import bc.blockchain.common.response.Response;
 import bc.blockchain.peer.Peer;
+import bc.blockchain.util.DispatherUtil;
 import bc.blockchain.util.RequestUtil;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.socket.SocketChannel;
@@ -20,7 +24,7 @@ public class ClientAdapter extends io.netty.channel.ChannelInboundHandlerAdapter
 	private Logger logger=LoggerFactory.getLogger(getClass());
 	private ClientCallBack simpleCallBack;
 	private Request request;
-	public ClientAdapter(ClientCallBack simpleCallBack, Request request) {
+	public ClientAdapter(ClientCallBack simpleCallBack) {
 		this.simpleCallBack=simpleCallBack;
 		if(request!=null){
 			this.request=request;
@@ -36,11 +40,10 @@ public class ClientAdapter extends io.netty.channel.ChannelInboundHandlerAdapter
 	  
 	    @Override  
 	    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {  
-	    	logger.info("获得返回值："+msg);
 	    	Request req = RequestUtil.create(msg.toString());
-	    	simpleCallBack.setRequest(req);
-	    	simpleCallBack.execute();
-	       // super.channelRead(ctx, msg);  
+			SocketChannel clientChannel = (SocketChannel) ctx.channel();
+			InetSocketAddress isd = clientChannel.remoteAddress();
+			Response response= DispatherUtil.getInstance(simpleCallBack).doService(req);
 	    }  
 	  
 	    @Override  
